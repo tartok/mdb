@@ -8,7 +8,7 @@ import (
 )
 
 type ICalculateFunc interface {
-	CalculateFunc(ctx Context)
+	CalculateFunc(ctx GetContext)
 }
 
 func ToBsonD(data interface{}) (bson.D, error) {
@@ -20,20 +20,20 @@ func ToBsonD(data interface{}) (bson.D, error) {
 	err = bson.Unmarshal(d, &m)
 	return m, err
 }
-func DeleteMany(ctx Context, dbName string, coll Collection, filter interface{}) (int, error) {
-	r, err := Coll(dbName, coll).DeleteMany(ctx.Ctx, filter)
+func DeleteMany(ctx GetContext, dbName string, coll Collection, filter interface{}) (int, error) {
+	r, err := Coll(dbName, coll).DeleteMany(ctx.GetContext().Ctx, filter)
 	if err != nil {
 		return 0, err
 	}
 	return int(r.DeletedCount), nil
 }
 
-func create(ctx Context, dbName string, coll Collection, data interface{}) (*bson.ObjectID, error) {
+func create(ctx GetContext, dbName string, coll Collection, data interface{}) (*bson.ObjectID, error) {
 	m := bson.D{{"CU", CU{
 		CUTime: CUTime{
 			CTime: CTime{CTime: Ref(time.Now())},
 		},
-		CUWho: CUWho{CWho: CWho{CWho: ctx.LoginId}},
+		CUWho: CUWho{CWho: CWho{CWho: ctx.GetContext().LoginId}},
 	}}}
 	d, err := ToBsonD(data)
 	if err != nil {
@@ -46,26 +46,26 @@ func create(ctx Context, dbName string, coll Collection, data interface{}) (*bso
 			m = append(m, v)
 		}
 	}
-	id, err := Coll(dbName, coll).InsertOne(ctx.Ctx, m)
+	id, err := Coll(dbName, coll).InsertOne(ctx.GetContext().Ctx, m)
 	if err != nil {
 		return nil, err
 	}
 	newId := id.InsertedID.(bson.ObjectID)
 	return &newId, nil
 }
-func Aggregate(ctx Context, dbName string, collName Collection, pipeline interface{}, result interface{}) error {
+func Aggregate(ctx GetContext, dbName string, collName Collection, pipeline interface{}, result interface{}) error {
 	err := aggregate(ctx, dbName, collName, pipeline, result)
 	calcFields(ctx, result)
 	return err
 }
-func aggregate(ctx Context, dbName string, collName Collection, pipeline interface{}, result interface{}) error {
-	c, err := Coll(dbName, collName).Aggregate(ctx.Ctx, pipeline)
+func aggregate(ctx GetContext, dbName string, collName Collection, pipeline interface{}, result interface{}) error {
+	c, err := Coll(dbName, collName).Aggregate(ctx.GetContext().Ctx, pipeline)
 	if err != nil {
 		return err
 	}
-	return c.All(ctx.Ctx, result)
+	return c.All(ctx.GetContext().Ctx, result)
 }
-func calcFields(ctx Context, cf interface{}) {
+func calcFields(ctx GetContext, cf interface{}) {
 	v := reflect.Indirect(reflect.ValueOf(cf))
 	switch v.Kind() {
 	case reflect.Struct:

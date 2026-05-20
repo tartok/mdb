@@ -33,14 +33,14 @@ func New(dbName string, coll Collection) *Crud {
 func (c Crud) CollName() Collection {
 	return c.collection
 }
-func (c Crud) Create(ctx Context, data interface{}) (*bson.ObjectID, error) {
-	return create(ctx, c.dbName, c.collection, data)
+func (c Crud) Create(ctx GetContext, data interface{}) (*bson.ObjectID, error) {
+	return create(ctx.GetContext(), c.dbName, c.collection, data)
 }
-func (c Crud) Update(ctx Context, filter interface{}, data UpdateStruct, res interface{}) error {
+func (c Crud) Update(ctx GetContext, filter interface{}, data UpdateStruct, res interface{}) error {
 	t := time.Now()
 	var set bson.D
 	if !data.NoLog {
-		set = append(set, bson.E{Key: "CU.uTime", Value: t}, bson.E{Key: "CU.uWho", Value: ctx.LoginId})
+		set = append(set, bson.E{Key: "CU.uTime", Value: t}, bson.E{Key: "CU.uWho", Value: ctx.GetContext().LoginId})
 	}
 	if data.Set != nil {
 		d, err := ToBsonD(data.Set)
@@ -57,7 +57,7 @@ func (c Crud) Update(ctx Context, filter interface{}, data UpdateStruct, res int
 	}
 	setOnInsert := bson.D{
 		{"CU.cTime", t},
-		{"CU.cWho", ctx.LoginId},
+		{"CU.cWho", ctx.GetContext().LoginId},
 	}
 	if data.SetOnInsert != nil {
 		d, err := ToBsonD(data.SetOnInsert)
@@ -97,7 +97,7 @@ func (c Crud) Update(ctx Context, filter interface{}, data UpdateStruct, res int
 	if data.Upsert || data.After {
 		opts = opts.SetReturnDocument(options.After)
 	}
-	r := Coll(c.dbName, c.collection).FindOneAndUpdate(ctx.Ctx, filter, m, opts)
+	r := Coll(c.dbName, c.collection).FindOneAndUpdate(ctx.GetContext().Ctx, filter, m, opts)
 	if r.Err() != nil {
 		return r.Err()
 	}
@@ -109,11 +109,11 @@ func (c Crud) Update(ctx Context, filter interface{}, data UpdateStruct, res int
 	}
 	return nil
 }
-func (c Crud) UpdateMany(ctx Context, filter interface{}, data UpdateStruct) (*mongo.UpdateResult, error) {
+func (c Crud) UpdateMany(ctx GetContext, filter interface{}, data UpdateStruct) (*mongo.UpdateResult, error) {
 	t := time.Now()
 	var set bson.D
 	if !data.NoLog {
-		set = append(set, bson.E{Key: "CU.uTime", Value: t}, bson.E{Key: "CU.uWho", Value: ctx.LoginId})
+		set = append(set, bson.E{Key: "CU.uTime", Value: t}, bson.E{Key: "CU.uWho", Value: ctx.GetContext().LoginId})
 	}
 	if data.Set != nil {
 		d, err := ToBsonD(data.Set)
@@ -131,7 +131,7 @@ func (c Crud) UpdateMany(ctx Context, filter interface{}, data UpdateStruct) (*m
 	m := bson.D{
 		{"$setOnInsert", bson.D{
 			{"CU.cTime", t},
-			{"CU.cWho", ctx.LoginId},
+			{"CU.cWho", ctx.GetContext().LoginId},
 		}},
 	}
 	if set != nil {
@@ -146,10 +146,10 @@ func (c Crud) UpdateMany(ctx Context, filter interface{}, data UpdateStruct) (*m
 	if data.Unset != nil {
 		m = append(m, bson.E{Key: "$unset", Value: data.Unset})
 	}
-	return Coll(c.dbName, c.collection).UpdateMany(ctx.Ctx, filter, m)
+	return Coll(c.dbName, c.collection).UpdateMany(ctx.GetContext().Ctx, filter, m)
 }
-func (c Crud) Delete(ctx Context, filter interface{}, res interface{}) error {
-	r := Coll(c.dbName, c.collection).FindOneAndDelete(ctx.Ctx, filter)
+func (c Crud) Delete(ctx GetContext, filter interface{}, res interface{}) error {
+	r := Coll(c.dbName, c.collection).FindOneAndDelete(ctx.GetContext().Ctx, filter)
 	if r.Err() != nil {
 		return r.Err()
 	}
@@ -161,17 +161,17 @@ func (c Crud) Delete(ctx Context, filter interface{}, res interface{}) error {
 	}
 	return nil
 }
-func (c Crud) DeleteMany(ctx Context, filter interface{}) (int, error) {
-	return DeleteMany(ctx, c.dbName, c.collection, filter)
+func (c Crud) DeleteMany(ctx GetContext, filter interface{}) (int, error) {
+	return DeleteMany(ctx.GetContext(), c.dbName, c.collection, filter)
 }
-func (c Crud) ReadMany(ctx Context, result interface{}, pipeline ...bson.A) error {
+func (c Crud) ReadMany(ctx GetContext, result interface{}, pipeline ...bson.A) error {
 	var agg bson.A
 	for _, a := range pipeline {
 		agg = append(agg, a...)
 	}
 	return Aggregate(ctx, c.dbName, c.collection, agg, result)
 }
-func (c Crud) ReadOne(ctx Context, result interface{}, pipeline ...bson.A) error {
+func (c Crud) ReadOne(ctx GetContext, result interface{}, pipeline ...bson.A) error {
 	var agg bson.A
 	for _, a := range pipeline {
 		agg = append(agg, a...)

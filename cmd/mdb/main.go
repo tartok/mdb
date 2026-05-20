@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,10 +13,15 @@ import (
 )
 
 func main() {
-	ctx := mdb.Context{
-		Ctx:     context.Background(),
-		LoginId: nil,
-	}
+	ctx := struct {
+		mdb.Context
+	}{}
+	ctx.LoginId = mdb.Ref(bson.NewObjectID())
+	//{
+	//	c, cancel := context.WithCancel(context.Background())
+	//	cancel()
+	//	ctx.Context = *mdb.NewContext(c)
+	//}
 	f, err := os.Open("./config.yaml")
 	if err != nil {
 		log.Fatal(err)
@@ -36,10 +40,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//id, err := testCollection.Create(ctx, struct {
-	//	Name string
-	//}{Name: "John"})
-	//fmt.Println(id, err)
+	id, err := testCollection.Create(ctx, struct {
+		Name string
+	}{Name: "John"})
+	fmt.Println(id, err)
 	//err = testCollection.Update(ctx, mdb.FilterId(*id), mdb.UpdateStruct{Set: bson.M{"text": "text2"}}, nil)
 	//if err != nil {
 	//	log.Fatal(err)
