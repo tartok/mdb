@@ -1,5 +1,4 @@
-module mdb
-
+module github.com/tartok/mdb
 go 1.20
 
 require (
