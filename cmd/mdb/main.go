@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"mdb/pkg/mdb"
-	"mdb/pkg/mdbs"
 	"os"
 
+	"github.com/tartok/mdb/pkg/mdb"
+	"github.com/tartok/mdb/pkg/mdbs"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"gopkg.in/yaml.v3"
 )
@@ -30,8 +30,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	testCollection := mdb.New("plant", "cTest")
-	err = mdb.Connect(ctx.Ctx, conf.Url, conf.Credential)
+	testCollection := mdb.New("", "cTest")
+	err = mdb.Connect(ctx.Ctx, conf.Url, conf.Credential, conf.DbName)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,8 +1,7 @@
 package mdbs
 
 import (
-	"mdb/pkg/mdb"
-
+	"github.com/tartok/mdb/pkg/mdb"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

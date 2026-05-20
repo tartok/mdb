@@ -10,11 +10,12 @@ import (
 
 type Mdb struct {
 	client *mongo.Client
+	dbName string
 }
 
 var Db *Mdb
 
-func Connect(ctx context.Context, url string, auth *options.Credential) error {
+func Connect(ctx context.Context, url string, auth *options.Credential, dbName string) error {
 	if Db != nil {
 		if Db.client != nil {
 			_ = Db.client.Disconnect(ctx)
@@ -40,9 +41,13 @@ func Connect(ctx context.Context, url string, auth *options.Credential) error {
 	}
 	Db = &Mdb{
 		client: client,
+		dbName: dbName,
 	}
 	return nil
 }
 func Coll(dbName string, collName Collection) *mongo.Collection {
+	if dbName == "" {
+		dbName = Db.dbName
+	}
 	return Db.client.Database(dbName).Collection(string(collName))
 }
