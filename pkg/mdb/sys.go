@@ -201,5 +201,14 @@ func (c CU) LastUnix() int64 {
 	}
 	return 0
 }
+func (c CU) LastTime() time.Time {
+	if c.UTime.UTime != nil {
+		return *c.UTime.UTime
+	}
+	if c.CTime.CTime != nil {
+		return *c.CTime.CTime
+	}
+	return time.Time{}
+}
 
 func Ref[T any](t T) *T { return &t }
