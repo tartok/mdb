@@ -28,18 +28,31 @@ func main() {
 	}
 	defer f.Close()
 	r := yaml.NewDecoder(f)
-	var conf mdb.Config
+	var conf map[string]mdb.Config
 	err = r.Decode(&conf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	testCollection := mdb.New("", "cTest")
-	err = mdb.Connect(ctx.Ctx, conf.Url, conf.Credential, conf.DbName)
+	{
+		err = mdb.Connect(ctx.Ctx, conf["auth"].Url, conf["auth"].Credential, conf["auth"].DbName)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		testCollection := mdb.New("auth.ede_auth", "sysUsers")
+		var res []struct {
+			Name string `bson:"name"`
+		}
+		err := testCollection.ReadMany(ctx, &res)
+		fmt.Println(res, err)
+	}
+	err = mdb.Connect(ctx.Ctx, conf["default"].Url, conf["default"].Credential, conf["default"].DbName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	testCollection := mdb.New("", "cTest")
 	id, err := testCollection.Create(ctx, struct {
 		Name string
 	}{Name: "John"})
