@@ -58,6 +58,14 @@ func Connect(ctx context.Context, url string, auth *options.Credential, dbName s
 	db.client = client
 	return nil
 }
+func Disconnect() error {
+	for _, db := range dbList {
+		if db.client != nil {
+			_ = db.client.Disconnect(context.Background())
+		}
+	}
+	return nil
+}
 func Coll(dbName string, collName Collection) *mongo.Collection {
 	db := dbList[""]
 	if db != nil && dbName == "" {
